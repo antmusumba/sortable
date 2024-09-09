@@ -1,72 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Superhero Data</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <h1>Superhero Data</h1>
-
-    <label for="searchField">Search Field:</label>
-    <select id="searchField">
-        <option value="name">Name</option>
-        <option value="biography.fullName">Full Name</option>
-        <option value="biography.placeOfBirth">Place of Birth</option>
-        <!-- Add other fields as needed -->
-    </select>
-
-    <label for="searchOperator">Search Operator:</label>
-    <select id="searchOperator">
-        <option value="include">Include</option>
-        <option value="exclude">Exclude</option>
-        <option value="fuzzy">Fuzzy</option>
-        <option value="equal">Equal</option>
-        <option value="notEqual">Not Equal</option>
-        <option value="greaterThan">Greater Than</option>
-        <option value="lesserThan">Lesser Than</option>
-    </select>
-
-    <input type="text" id="searchInput" placeholder="Search...">
-
-    <label for="pageSize">Page Size:</label>
-    <select id="pageSize">
-        <option value="10">10</option>
-        <option value="20" selected>20</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-        <option value="all">All</option>
-    </select>
-
-    <table>
+<html lang="en"><head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardians of the Multiverse - Superhero Codex</title>
+    <link rel="stylesheet" href="styles.css">    
+<   /head>
+    <body>
+    <h1>Guardians of the Multiverse</h1>
+    <p class="tagline">Explore the Extraordinary: Where Heroes and Vilains Converge Across Realities</p>
+<div id="controls">
+        <input type="text" id="search" placeholder="Search by name">
+        <select id="pageSize" aria-label="Select number of results per page">undefined+
+            <option value="10">10 per page</option>undefined+
+            <option value="20" selected>20 per page</option>undefined+
+            <option value="50">50 per page</option>undefined+
+            <option value="100">100 per page</option>undefined+
+            <option value="all">All results</option>undefined+
+        </select>u
+    </div>
+    <table id="heroTable">
         <thead>
             <tr>
-                <th>Icon</th>
-                <th>Name</th>
-                <th>Full Name</th>
-                <th>Powerstats</th>
-                <th>Race</th>
-                <th>Gender</th>
-                <th>Height</th>
-                <th>Weight</th>
-                <th>Place of Birth</th>
-                <th>Alignment</th>
+                <th data-sort="icon">Icon</th>
+                <th data-sort="name">Name</th>
+                <th data-sort="biography.fullName">Full Name</th>
+                <th data-sort="powerstats.intelligence">Intelligence</th>
+                <th data-sort="powerstats.strength">Strength</th>
+                <th data-sort="powerstats.speed">Speed</th>
+                <th data-sort="powerstats.durability">Durability</th>
+                <th data-sort="powerstats.power">Power</th>
+                <th data-sort="powerstats.combat">Combat</th>
+                <th data-sort="appearance.race">Race</th>
+                <th data-sort="appearance.gender">Gender</th>
+                <th data-sort="appearance.height">Height</th>
+                <th data-sort="appearance.weight">Weight</th>
+                <th data-sort="biography.placeOfBirth">Place Of Birth</th>
+                <th data-sort="biography.alignment">Alignment</th>
             </tr>
         </thead>
-        <tbody id="tableBody">
-            <!-- Data rows will be inserted here -->
-        </tbody>
+        <tbody></tbody>
     </table>
-
-    <div id="detailView" style="display: none;">
-        <h2 id="detailName"></h2>
-        <img id="detailImage" src="" alt="Hero Image">
-        <p id="detailFullName"></p>
-        <!-- Add other details as needed -->
-        <button id="closeDetail">Close</button>
-    </div>
+    <div id="pagination"></div>
 
     <script src="script.js"></script>
-</body>
-</html>
+</body></html>
