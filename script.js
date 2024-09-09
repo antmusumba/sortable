@@ -1,103 +1,178 @@
-const API_URL = 'https://rawcdn.githack.com/akabab/superhero-api/0.2.0/api/all.json';
-let heroes = [];
-let displayedHeroes = [];
+document.addEventListener('DOMContentLoaded', function() {
+    let heroes = [];
+    let currentPage = 1;
+    let itemsPerPage = 20;
+    let currentSortColumn = 'name';
+    let isAscending = true;
 
-const fetchData = async () => {
-    try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
+    function loadData(data) {
         heroes = data;
-        renderTable(heroes);
-    } catch (error) {
-        console.error('Error fetching data:', error);
+        sortHeroes(currentSortColumn, isAscending);
+        renderTable();
+        renderPagination();
     }
-};
 
-const renderTable = (heroes) => {
-    const tableBody = document.getElementById('tableBody');
-    tableBody.innerHTML = '';
+    function renderTable() {
+        const searchTerm = document.getElementById('search').value.toLowerCase();
+        const filteredHeroes = heroes.filter(hero => 
+            hero.name.toLowerCase().includes(searchTerm)
+        );
 
-    displayedHeroes = heroes.slice(0, getPageSize());
+        const tbody = document.querySelector('#heroTable tbody');
+        tbody.innerHTML = '';
 
-    displayedHeroes.forEach(hero => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><img src="${hero.images.xs}" alt="${hero.name}"></td>
-            <td>${hero.name}</td>
-            <td>${hero.biography.fullName}</td>
-            <td>${Object.entries(hero.powerstats).map(([key, value]) => `${key}: ${value}`).join(', ')}</td>
-            <td>${hero.appearance.race}</td>
-            <td>${hero.appearance.gender}</td>
-            <td>${hero.appearance.height.join(', ')}</td>
-            <td>${hero.appearance.weight}</td>
-            <td>${hero.biography.placeOfBirth}</td>
-            <td>${hero.biography.alignment}</td>
-        `;
-        row.addEventListener('click', () => showDetails(hero));
-        tableBody.appendChild(row);
-    });
-};
-
-const showDetails = (hero) => {
-    document.getElementById('detailName').textContent = hero.name;
-    document.getElementById('detailImage').src = hero.images.lg;
-    document.getElementById('detailFullName').textContent = hero.biography.fullName;
-    // Populate other details as needed
-    document.getElementById('detailView').style.display = 'block';
-};
-
-document.getElementById('closeDetail').addEventListener('click', () => {
-    document.getElementById('detailView').style.display = 'none';
-});
-
-const getPageSize = () => {
-    const pageSize = document.getElementById('pageSize').value;
-    return pageSize === 'all' ? heroes.length : parseInt(pageSize, 10);
-};
-
-const searchHeroes = () => {
-    const field = document.getElementById('searchField').value;
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    const operator = document.getElementById('searchOperator').value;
-
-    const filteredHeroes = heroes.filter(hero => {
-        let value = hero;
-        field.split('.').forEach(key => {
-            value = value[key];
-        });
-        value = value?.toString().toLowerCase() || '';
-
-        switch (operator) {
-            case 'include':
-                return value.includes(query);
-            case 'exclude':
-                return !value.includes(query);
-            case 'fuzzy':
-                return fuzzySearch(value, query); // Implement fuzzy search
-            case 'equal':
-                return value === query;
-            case 'notEqual':
-                return value !== query;
-            case 'greaterThan':
-                return Number(value) > Number(query);
-            case 'lesserThan':
-                return Number(value) < Number(query);
-            default:
-                return false;
+        let startIndex, endIndex;
+        if (itemsPerPage === 'all') {
+            startIndex = 0;
+            endIndex = filteredHeroes.length;
+        } else {
+            startIndex = (currentPage - 1) * parseInt(itemsPerPage);
+            endIndex = Math.min(startIndex + parseInt(itemsPerPage), filteredHeroes.length);
         }
+
+        for (let i = startIndex; i < endIndex; i++) {
+            const hero = filteredHeroes[i];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><img src="${hero.images.xs}" alt="${hero.name}"></td>
+                <td>${hero.name}</td>
+                <td>${hero.biography.fullName || ''}</td>
+                <td>${hero.powerstats.intelligence}</td>
+                <td>${hero.powerstats.strength}</td>
+                <td>${hero.powerstats.speed}</td>
+                <td>${hero.powerstats.durability}</td>
+                <td>${hero.powerstats.power}</td>
+                <td>${hero.powerstats.combat}</td>
+                <td>${hero.appearance.race || ''}</td>
+                <td>${hero.appearance.gender || ''}</td>
+                <td>${hero.appearance.height[1] || ''}</td>
+                <td>${hero.appearance.weight[1] || ''}</td>
+                <td>${hero.biography.placeOfBirth || ''}</td>
+                <td>${hero.biography.alignment || ''}</td>
+            `;
+            tbody.appendChild(row);
+        }
+        renderPagination();
+    }
+
+    function renderPagination() {
+        const paginationDiv = document.getElementById('pagination');
+        paginationDiv.innerHTML = '';
+
+        if (itemsPerPage === 'all') return;
+
+        const totalPages = Math.ceil(heroes.length / parseInt(itemsPerPage));
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = 'Previous';
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        });
+        paginationDiv.appendChild(prevButton);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.disabled = currentPage === i;
+            pageButton.addEventListener('click', () => {
+                currentPage = i;
+                renderTable();
+            });
+            paginationDiv.appendChild(pageButton);
+        }
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Next';
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        });
+        paginationDiv.appendChild(nextButton);
+    }
+
+    function sortHeroes(column, ascending = true) {
+        currentSortColumn = column;
+        isAscending = ascending;
+
+        heroes.sort((a, b) => {
+            let valueA = getNestedValue(a, column);
+            let valueB = getNestedValue(b, column);
+
+            const isValueAMissing = valueA === null || valueA === undefined || valueA === 'N/A' || valueA === '-' || valueA === '';
+            const isValueBMissing = valueB === null || valueB === undefined || valueB === 'N/A' || valueB === '-' || valueB === '';
+
+            if (isValueAMissing && isValueBMissing) return 0;
+            if (isValueAMissing) return ascending ? 1 : -1;
+            if (isValueBMissing) return ascending ? -1 : 1;
+
+            if (column === 'appearance.weight') {
+                valueA = parseFloat(valueA[1].toLowerCase().replace(/[^\d.]/g, ''));
+                valueB = parseFloat(valueB[1].toLowerCase().replace(/[^\d.]/g, ''));
+            } 
+            else if (column === 'appearance.height') {
+                valueA = parseFloat(valueA[1].split(' ')[0]);
+                valueB = parseFloat(valueB[1].split(' ')[0]);
+            } 
+            else if (typeof valueA === 'string' && typeof valueB === 'string') {
+                valueA = valueA.trim().toLowerCase();
+                valueB = valueB.trim().toLowerCase();
+                return ascending ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+            }
+
+            if (valueA < valueB) return ascending ? -1 : 1;
+            if (valueA > valueB) return ascending ? 1 : -1;
+            return 0;
+        });
+
+        renderTable();
+    }
+
+    function getNestedValue(obj, path) {
+        const keys = path.split('.');
+        let value = obj;
+        for (const key of keys) {
+            if (value && value.hasOwnProperty(key)) {
+                value = value[key];
+            } else {
+                return '';
+            }
+        }
+        return value;
+    }
+
+    document.getElementById('search').addEventListener('input', () => {
+        currentPage = 1;
+        renderTable();
     });
 
-    renderTable(filteredHeroes);
-};
+    document.getElementById('pageSize').addEventListener('change', function(e) {
+        itemsPerPage = e.target.value;
+        currentPage = 1;
+        renderTable();
+    });
 
-const fuzzySearch = (value, query) => {
-    // Implement fuzzy search algorithm if needed
-    return value.includes(query); // Simple includes for now
-};
+    document.querySelectorAll('#heroTable th').forEach(th => {
+        th.addEventListener('click', function() {
+            const column = this.dataset.sort;
+            if (column === currentSortColumn) {
+                isAscending = !isAscending;
+            } else {
+                isAscending = true;
+            }
+            sortHeroes(column, isAscending);
+        });
+    });
 
-document.getElementById('searchInput').addEventListener('input', searchHeroes);
-document.getElementById('pageSize').addEventListener('change', () => {
-    renderTable(heroes);
+    const dataUrl = 'https://rawcdn.githack.com/akabab/superhero-api/0.2.0/api/all.json';
+    fetch(dataUrl)
+        .then(response => response.json())
+        .then(loadData)
+        .catch(error => console.error('Error loading data:', error));
 });
-
-fetchData();
